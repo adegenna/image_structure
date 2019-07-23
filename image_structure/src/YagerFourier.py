@@ -224,7 +224,7 @@ def peak_fit(xs, ys, x_expected, range_rel=0.2, vary=True, eps=1e-10):
     fit_line_extended = fit_x, fit_y
         
     return lm_result, fit_line, fit_line_extended
-        
+    
 def fft_circavg_yager_2d(input_data, plot_metrics=True, output_dir='./', output_name='result',
                          range_rel=0.75, scale=[1,1], adjust=1.0, output_condition='' , interpolation_abscissa = None ):
     assert( input_data.ndim == 2 )
@@ -277,7 +277,6 @@ def fft_circavg_yager_2d(input_data, plot_metrics=True, output_dir='./', output_
     np.savetxt( output_dir + output_name + 'fft_circavg.out' , [qs , data1D] )
     
     return qs , data1D , lm_result
-
     
 def structure_vector_yager_2d(input_data, plot_metrics=True, output_dir='./', output_name='result',
                               range_rel=0.75, scale=[1,1], adjust=1.0, output_condition='', interpolation_abscissa=None):
@@ -298,6 +297,22 @@ def structure_vector_yager_2d(input_data, plot_metrics=True, output_dir='./', ou
     np.savetxt( output_dir + output_name + 'structure_vector.out' , [p, q, sigma, I, m, b] )
 
     return p, q, sigma, I, m, b
+
+# This is just a Python closure to wrap the interpolation_abscissa argument
+def make_fft_circavg_yager_2d( interpolation_abscissa ):
+    def fft_circavg_wrapper( input_data, plot_metrics=True, output_dir='./', output_name='result',
+                             range_rel=0.75, scale=[1,1], adjust=1.0, output_condition='' , interpolation_abscissa = interpolation_abscissa):
+        return fft_circavg_yager_2d( input_data, plot_metrics, output_dir, output_name,
+                                     range_rel, scale, adjust, output_condition, interpolation_abscissa )
+    return fft_circavg_wrapper
+
+# This is just a Python closure to wrap the interpolation_abscissa argument
+def make_structure_vector_yager_2d( interpolation_abscissa ):
+    def structure_vector_wrapper( input_data, plot_metrics=True, output_dir='./', output_name='result',
+                                  range_rel=0.75, scale=[1,1], adjust=1.0, output_condition='' , interpolation_abscissa = interpolation_abscissa):
+        return structure_vector_yager_2d( input_data, plot_metrics, output_dir, output_name,
+                                          range_rel, scale, adjust, output_condition, interpolation_abscissa )
+    return structure_vector_wrapper
 
 
 if __name__ == '__main__':

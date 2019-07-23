@@ -10,6 +10,7 @@ class ImageStructure:
         Light wrapper class for image structure functions
         """
         self.dimensions = int(inputs.dimensions)
+        self.inputs     = inputs
         assert ((self.dimensions == 2) | (self.dimensions == 3))
         input_data = self.read_input_data(inputs.data_file,inputs.data_file_type)
         try:
@@ -61,10 +62,27 @@ class ImageStructure:
         """
         if (structure_function_type == 'fourier'):
             self.structure_function = fit_gaussian_to_average_fourier_spectrum
+
         elif (structure_function_type == 'fourier_yager'):
-            self.structure_function = structure_vector_yager_2d
+            try:
+                self.structure_function = make_structure_vector_yager_2d( interpolation_abscissa = self.inputs.interpolation_abscissa ) 
+            except:
+                sys.exit('Must specify interpolation_abscissa for this structure function choice')
+
         elif (structure_function_type == 'fourier_yager_full'):
-            self.structure_function = fft_circavg_yager_2d
+            try:
+                self.structure_function = make_fft_circavg_yager_2d( interpolation_abscissa = self.inputs.interpolation_abscissa ) 
+            except:
+                sys.exit('Must specify interpolation_abscissa for this structure function choice')
+
+        elif (structure_function_type == 'voronoi'):
+            try:
+                self.structure_function = make_voronoi( filter_tolerance = self.inputs.filter_tolerance ) 
+            except:
+                sys.exit('Must specify filter_tolerance for this structure function choice')
+
+            self.structure_function = voronoi
+
         else:
             sys.exit('Unsupported structure function type. Supported types are: fourier , fourier_yager , fourier_yager_full.')
 
@@ -75,7 +93,6 @@ class ImageStructure:
         structure = self.structure_function(input_data   = self.input_data , \
                                             plot_metrics = plot_metrics , \
                                             output_dir   = outdir , \
-                                            output_name  = str_figure , \
-                                            interpolation_abscissa = interpolation_abscissa )
+                                            output_name  = str_figure  )
         return structure
     
