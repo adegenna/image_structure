@@ -10,9 +10,19 @@ def voronoi( input_data , plot_metrics=False , output_dir='./' , output_name='' 
     
     xy0               = compute_voronoi_centers( input_data , filter_tolerance )
     vor               = Voronoi( xy0 )
-    vertices_internal = compute_nvertices_for_each_center( xy0 , vor , [0,input_data.shape[0]] , [0,input_data.shape[1]] )
+    vertices_internal , centers_internal = compute_nvertices_for_each_center(
+        xy0 , vor , [0,input_data.shape[0]] , [0,input_data.shape[1]] )
+    dist_centers_to_vertices = compute_distance_center_to_vertices( centers_internal , vertices_internal )
 
-    return vertices_internal , vor
+    return vertices_internal , centers_internal , dist_centers_to_vertices , vor
+
+def compute_distance_center_to_vertices( centers_internal , vertices_internal ):
+
+    d_cv = np.zeros(len(centers_internal))
+    for i in range(len(centers_internal)):
+        d_cv[i] = np.sum( [np.linalg.norm(centers_internal[i] - vi) for vi in vertices_internal[i]] ) / len(vertices_internal[i])
+
+    return d_cv
     
 def compute_voronoi_centers( input_data , filter_tolerance=1 ):
 
@@ -50,18 +60,20 @@ def compute_voronoi_centers( input_data , filter_tolerance=1 ):
 def compute_nvertices_for_each_center( xy0 , vor , xminmax , yminmax):
 
     vertices_internal = []
+    centers_internal  = []
     
     for i in range(len( vor.regions )):
-        vi = np.array( [ vor.vertices[j] for j in vor.regions[i] ] )
+        vi  = np.array( [ vor.vertices[j] for j in vor.regions[i] ] )
         try:
             if ( np.any(vi[:,0] > xminmax[1]) | np.any(vi[:,0] < xminmax[0]) | np.any(vi[:,1] > yminmax[1]) | np.any(vi[:,1] < yminmax[0]) ):
                 pass
             else:
                 vertices_internal.append( vi )
+                centers_internal.append( vor.points[np.where(vor.point_region == i)[0][0]] )
         except:
             pass
     
-    return vertices_internal
+    return vertices_internal , centers_internal
 
 
     

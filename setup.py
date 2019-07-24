@@ -24,7 +24,7 @@ setup(name             = 'image_structure',
                           'image_structure.src'     : 'image_structure/src' ,\
                           'image_structure.scripts' : 'image_structure/scripts'},
       entry_points     = { 'console_scripts': ['Package = image_structure.scripts.driver:main' ] },
-      install_requires = [ 'numpy', 'scipy', 'matplotlib' ],
+      install_requires = [ 'numpy', 'scipy', 'matplotlib' , 'lmfit' , 'scikit-image' ],
       python_requires  = '>=3',
       zip_safe         = False
 )
