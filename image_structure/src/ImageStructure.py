@@ -1,6 +1,7 @@
 import numpy as np
 from image_structure.src.Fourier import *
 from image_structure.src.YagerFourier import *
+from image_structure.src.Voronoi import *
 import sys
 
 class ImageStructure:
@@ -80,8 +81,6 @@ class ImageStructure:
                 self.structure_function = make_voronoi( filter_tolerance = self.inputs.filter_tolerance ) 
             except:
                 sys.exit('Must specify filter_tolerance for this structure function choice')
-
-            self.structure_function = voronoi
 
         else:
             sys.exit('Unsupported structure function type. Supported types are: fourier , fourier_yager , fourier_yager_full.')
