@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.spatial import Voronoi
+from scipy.spatial import Voronoi , Delaunay
+from shapely.geometry.polygon import Polygon
 from skimage import measure
 from skimage import filters
 
@@ -10,11 +11,11 @@ def voronoi( input_data , plot_metrics=False , output_dir='./' , output_name='' 
     
     xy0               = compute_voronoi_centers( input_data , filter_tolerance )
     vor               = Voronoi( xy0 )
-    vertices_internal , centers_internal = compute_nvertices_for_each_center(
+    vertices_internal , centers_internal , vol_internal = compute_nvertices_for_each_center(
         xy0 , vor , [0,input_data.shape[0]] , [0,input_data.shape[1]] )
     dist_centers_to_vertices = compute_distance_center_to_vertices( centers_internal , vertices_internal )
 
-    return vertices_internal , centers_internal , dist_centers_to_vertices , vor
+    return vertices_internal , centers_internal , vol_internal , dist_centers_to_vertices , vor
 
 def compute_distance_center_to_vertices( centers_internal , vertices_internal ):
 
@@ -58,25 +59,37 @@ def compute_voronoi_centers( input_data , filter_tolerance=1 ):
     return xy_centers
 
 def compute_nvertices_for_each_center( xy0 , vor , xminmax , yminmax):
-
+    
     vertices_internal = []
     centers_internal  = []
+    vol_internal      = []
     
     for i in range(len( vor.regions )):
         vi  = np.array( [ vor.vertices[j] for j in vor.regions[i] ] )
         try:
-            if ( np.any(vi[:,0] > xminmax[1]) | np.any(vi[:,0] < xminmax[0]) | np.any(vi[:,1] > yminmax[1]) | np.any(vi[:,1] < yminmax[0]) ):
-                pass
-            else:
+            if ( (np.all(vi[:,0] <= xminmax[1]) & \
+                  np.all(vi[:,0] >= xminmax[0]) & \
+                  np.all(vi[:,1] <= yminmax[1]) & \
+                  np.all(vi[:,1] >= yminmax[0]) ) & \
+                 (np.all(np.array(vor.regions[i]) != -1)     )    ):
                 vertices_internal.append( vi )
                 centers_internal.append( vor.points[np.where(vor.point_region == i)[0][0]] )
+                vol_internal.append( compute_volume(vi) )
         except:
             pass
     
-    return vertices_internal , centers_internal
+    return vertices_internal , centers_internal , vol_internal
 
 
+def compute_volume( vi ):
     
+    tri          = Delaunay( vi )
+    coord_groups = [tri.points[x] for x in tri.simplices]
+    polygons     = [Polygon(x) for x in coord_groups]
+    vol          = np.sum( [pi.area for pi in polygons] )
+    
+    return vol
+
 # This is just a Python closure to wrap the filter_tolerance argument
 def make_voronoi( filter_tolerance ):
     def voronoi_wrapper( input_data, plot_metrics=True, output_dir='./', output_name='result',
